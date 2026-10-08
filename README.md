@@ -17,8 +17,8 @@ VPS ── ssh / scp（Tailnet，密钥登录）──▶ 本机 Windows，账�
 ```
 
 - **每次运行互相独立：** 每次运行都有独立目录，记录参数、耗时和状态，成功后写入 `SUCCESS` 标记。
-- **断线不中断：** SSH 断开时，本机上的任务会继续完成，VPS 之后再取结果。
-- **画质无损：** 视频编码默认 libx264，并行加速前后的输出逐字节相同。
+- **断线处理：** 在已验证环境中，SSH 前台渲染命令断线后可继续完成，VPS 会重新查询结果；其他环境需复验。
+- **编码结果一致：** 视频默认使用 libx264（CRF 18，有损编码）；已验证的并行与串行流程输出逐字节相同。
 
 ## 目录
 
@@ -29,7 +29,7 @@ VPS ── ssh / scp（Tailnet，密钥登录）──▶ 本机 Windows，账�
 | `projects/` | 示例任务：着色器动画（`demo`）、GPU 计算（`gpu-matmul`）、最简诊断（`tri`） |
 | `examples/compute/` | 不经过浏览器的本机计算示例（Node） |
 | `ops/vps-harden.sh` | VPS 加固：入站防火墙、sshd、自动更新（分步执行，可回滚） |
-| `docs/` | 设计说明、实测记录、SSH 配置示例 |
+| `docs/` | 设计说明、实测记录、SSH 配置示例；`docs/claude-skill/SKILL.md` 是 Claude Code 全局 skill 模板（复制到 `~/.claude/skills/local-gpu-render/` 并替换占位符后，任何会话遇到渲染或 GPU 计算任务都会自动走这套流程） |
 | `archive/` | 早期设计（已被取代），仅作存档 |
 
 ## 准备
@@ -56,12 +56,17 @@ render/rr wait "$log"                             # 等待完成，打印摘要
 render/rr fetch <run_id> frames                   # 取回关键帧
 
 log=$(render/rr render demo -Width 1920 -Height 1080 -Frames 900 -Encode)   # 渲染并在本机编码
+render/rr wait "$log"
 render/rr fetch <run_id> contact                  # 在本机核对视频，取回一张联系表
 render/rr status <run_id>                         # 查询状态；render/rr runs 列出所有运行
 
 render/rr render gpu-matmul -Job                  # 计算任务：结果保存在 result.json
 ssh render-local "node D:\path\to\script.mjs"     # 也可以直接运行任意命令
 ```
+
+**原生 GPU 工具（不经过浏览器）**：
+- **Blender**（Cycles 加 OptiX）：`ssh render-local "D:\ClaudeRender\tools\blender\blender.exe -b <场景.blend> -o <输出> -a"`。GPU 设备的选择可以参考本机上的 `tools\blender-gpu-probe.py`。
+- **原生 WebGPU**（Dawn for Node，D3D12 后端）：`ssh render-local "D:\ClaudeRender\tools\webgpu\node.exe D:\ClaudeRender\tools\claude\run-webgpu-job.mjs <任务> n=2048"`。导出 `run(ctx)` 的任务模块不用改代码就能在这里运行。
 
 **自定义任务**：在 `projects/<名称>/index.js` 写一个 ES 模块：
 - **渲染：** 导出 `setup(ctx)` 和 `renderFrame(i, t)`，其中 `t = i / fps`，画面只由帧号决定，不依赖实时播放。
@@ -72,7 +77,7 @@ ssh render-local "node D:\path\to\script.mjs"     # 也可以直接运行任意�
 ## 注意事项
 
 - 本机与 VPS 之间的带宽通常有限，尽量在本机完成处理，只取回小文件。
-- 通过 SSH 运行的程序在 Windows 的非交互会话（session 0）中，无头浏览器需要加 `--use-angle=vulkan --disable-gpu-compositing`（已是默认）；在这种环境下 WebGPU 不可用，请用 WebGL2。
+- 通过 SSH 运行的程序在 Windows 的非交互会话（session 0）中，无头浏览器需要加 `--use-angle=vulkan --disable-gpu-compositing`（已是默认）。浏览器内的 WebGPU 在这种环境下不可用；需要 WebGPU 时请改用上面的原生 Dawn 运行时。
 - 需要用到的本机工具（ffmpeg、Blender 等）必须让 render 账户有读取和执行权限。
 - 本机关机或重启会中断任务，需要重跑；渲染期间会自动阻止 Windows 进入睡眠。
 

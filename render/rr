@@ -1,7 +1,8 @@
 #!/bin/bash
 # rr - drive renders on the local Windows machine (Host render-local in ~/.ssh/config).
 #   rr tools                      upload render/local/* to D:\ClaudeRender\tools\claude
-#   rr push <project>             replace D:\ClaudeRender\projects\<project> with projects/<project>
+#   rr push <project|dir>         replace D:\ClaudeRender\projects\<name> with projects/<project>
+#                                 or with any directory containing index.js (name = its basename)
 #   rr render <project> [args]    start render.ps1 under nohup ssh; prints the VPS log path
 #                                 (the run id is chosen here and stored in <log>.runid)
 #   rr wait <log>                 block until that render finishes; prints its JSON summary.
@@ -16,7 +17,8 @@ REPO=$(cd "$HERE/.." && pwd)
 HOST=render-local
 RROOT='D:\ClaudeRender'
 RROOT_FW='D:/ClaudeRender'
-LOGS="$REPO/runs/_vps-logs"
+OUT=${RR_OUT:-$REPO/runs}          # where fetched results and VPS-side logs go (set RR_OUT per project)
+LOGS="$OUT/_vps-logs"
 ps_run() { ssh "$HOST" "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$1\"" </dev/null; }
 
 case "${1:-}" in
@@ -25,9 +27,13 @@ tools)
   scp -q "$HERE"/local/* "$HOST:$RROOT_FW/tools/claude/"
   echo "tools uploaded";;
 push)
-  p=${2:?project}; [ -f "$REPO/projects/$p/index.js" ] || { echo "no projects/$p/index.js" >&2; exit 2; }
+  src=${2:?project or directory}
+  if [ -d "$src" ]; then src=$(cd "$src" && pwd); else src="$REPO/projects/$src"; fi
+  p=$(basename "$src")
+  [[ "$p" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$ ]] || { echo "bad project name: $p" >&2; exit 2; }
+  [ -f "$src/index.js" ] || { echo "no index.js in $src" >&2; exit 2; }
   ps_run "if (Test-Path $RROOT\\projects\\$p) { Remove-Item -Recurse -Force $RROOT\\projects\\$p }"
-  scp -q -r "$REPO/projects/$p" "$HOST:$RROOT_FW/projects/"
+  scp -q -r "$src" "$HOST:$RROOT_FW/projects/"
   echo "pushed $p";;
 render)
   p=${2:?project}; shift 2
@@ -54,7 +60,7 @@ wait)
     case "$st" in *'"state":"running"'*|"") sleep 10;; *) echo "$st"; break;; esac
   done;;
 fetch)
-  id=${2:?run_id}; what=${3:-meta}; dst="$REPO/runs/$id"; mkdir -p "$dst"
+  id=${2:?run_id}; what=${3:-meta}; dst="$OUT/$id"; mkdir -p "$dst"
   case $what in
     meta)   scp -q "$HOST:$RROOT_FW/runs/$id/run.json" "$dst/"; scp -q -r "$HOST:$RROOT_FW/runs/$id/logs" "$dst/";;
     frames) scp -q -r "$HOST:$RROOT_FW/runs/$id/frames" "$dst/";;
