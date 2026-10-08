@@ -2,18 +2,8 @@
    succeeded | failed | running (runner process alive) | interrupted (no runner, no terminal status) #>
 param([string]$RunId = '', [string]$Root = 'D:\ClaudeRender')
 [Console]::OutputEncoding = [Text.Encoding]::UTF8
-function State($dir) {
-  if (Test-Path (Join-Path $dir 'SUCCESS')) { return 'succeeded' }
-  $info = $null
-  try { $info = Get-Content -Raw (Join-Path $dir 'run.json') | ConvertFrom-Json } catch { }
-  if ($info -and $info.status -eq 'failed') { return 'failed' }
-  $pidFile = Join-Path $dir 'runner.pid'
-  if (Test-Path $pidFile) {
-    $p = Get-Process -Id ([int](Get-Content $pidFile)) -ErrorAction SilentlyContinue
-    if ($p -and $p.ProcessName -eq 'powershell') { return 'running' }
-  }
-  return 'interrupted'
-}
+. (Join-Path $PSScriptRoot 'runs-lib.ps1')
+Set-Alias State Get-RunState
 if ($RunId) {
   $dir = Join-Path $Root "runs\$RunId"
   if (-not (Test-Path $dir)) { '{"state":"missing"}'; exit 0 }

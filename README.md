@@ -11,14 +11,17 @@ VPS 经 Tailscale 内网，用 SSH 登录本机上的一个**非管理员专用�
 ```text
 VPS ── ssh / scp（Tailnet，密钥登录）──▶ 本机 Windows，账户 render（非管理员）
   render/rr                                 D:\ClaudeRender\tools\claude\render.ps1
-  projects/<任务>/  ──── push ────▶        D:\ClaudeRender\projects\<任务>\
-  runs/<运行>/      ◀── 小文件 ────        D:\ClaudeRender\runs\<运行>\
+  projects/<任务>/  ──── push ────▶        D:\ClaudeRender\projects\<任务>\      代码
+  runs/<运行>/      ◀── 小文件 ────        D:\ClaudeRender\runs\<运行>\          工作区（定期清理）
+                                            D:\ClaudeRender\output\<任务>\        成品视频（永久保留）
                                             无头浏览器（WebGL2）+ ffmpeg，或任意命令
 ```
 
 - **每次运行互相独立：** 每次运行都有独立目录，记录参数、耗时和状态，成功后写入 `SUCCESS` 标记。
 - **断线处理：** 在已验证环境中，SSH 前台渲染命令断线后可继续完成，VPS 会重新查询结果；其他环境需复验。
 - **编码结果一致：** 视频默认使用 libx264（CRF 18，有损编码）；已验证的并行与串行流程输出逐字节相同。
+- **成品集中存放：** 编码成功的视频自动发布到 `output\<任务>\`，文件名包含日期、分辨率、帧率和时长。旁边附参数记录（`.json`）和场景代码快照（`.scene.zip`），`output\index.csv` 汇总所有成品。成品以硬链接方式存放，不占双份空间。
+- **工作区自动瘦身：** 每次运行结束删除浏览器临时配置；编码成功后只保留首、中、尾 3 张关键帧。旧运行可以用 `rr prune` 清理，`output` 从不自动清理。已发布成品及其参数和场景快照保留在 output 中；重新渲染的逐字节一致性仅在已验证的工具链环境中成立。
 
 ## 目录
 
@@ -59,6 +62,8 @@ log=$(render/rr render demo -Width 1920 -Height 1080 -Frames 900 -Encode)   # �
 render/rr wait "$log"
 render/rr fetch <run_id> contact                  # 在本机核对视频，取回一张联系表
 render/rr status <run_id>                         # 查询状态；render/rr runs 列出所有运行
+render/rr prune --project demo --apply            # 一轮出完成品后，清理这个项目的全部过程运行
+render/rr prune 14                                # 兜底：列出 14 天前的运行（只列出）；加 --apply 才删除
 
 render/rr render gpu-matmul -Job                  # 计算任务：结果保存在 result.json
 ssh render-local "node D:\path\to\script.mjs"     # 也可以直接运行任意命令
@@ -72,7 +77,7 @@ ssh render-local "node D:\path\to\script.mjs"     # 也可以直接运行任意�
 - **渲染：** 导出 `setup(ctx)` 和 `renderFrame(i, t)`，其中 `t = i / fps`，画面只由帧号决定，不依赖实时播放。
 - **计算：** 导出 `async run(ctx)`，返回 JSON。
 
-常用参数：`-Width -Height -Fps -Frames -Only -Encode -Crf -Job`；完整说明见 `render/local/render.ps1` 开头的注释。
+常用参数：`-Width -Height -Fps -Frames -Only -Encode -Title -NoPublish -KeepFrames -Crf -Job`；完整说明见 `render/local/render.ps1` 开头的注释。
 
 ## 注意事项
 

@@ -12,6 +12,14 @@
             frames listed in -Keep are additionally saved as PNG.  Requires -Encode and a full run.
   -VerifyMd5 writes logs\input.framemd5: MD5 of every frame exactly as handed to the encoder.
 
+  After a successful -Encode run (standard housekeeping):
+    - the video is published to output\<Project>\<Project>_<yyyy-MM-dd_HHmm>[_<Title>]_<W>x<H>_<fps>fps_<dur>s.mp4
+      as an NTFS hard link (no extra space; survives deleting the run), with <same>.json (parameters,
+      timings, sha256) and <same>.scene.zip (exact scene code), and a row appended to output\index.csv;
+      -NoPublish skips this (tests);
+    - PNG frames are deleted except the keyframes (first / middle / last, or -Keep); -KeepFrames keeps all.
+  Every run deletes its temporary Chrome profile at the end.
+
   Layout (all under D:\ClaudeRender):
     projects\<Project>\index.js   scene module: export setup(ctx), renderFrame(i, t)
     runs\<RunId>\scene\            snapshot of the project used for this run
@@ -19,7 +27,8 @@
     runs\<RunId>\logs\              runner / browser / ffmpeg logs
     runs\<RunId>\video.mp4          only with -Encode, full runs
     runs\<RunId>\run.json           parameters, timings, status
-    runs\<RunId>\SUCCESS            written last (after encoding when -Encode)
+    runs\<RunId>\SUCCESS            written last (after encoding and publishing when -Encode)
+    output\<Project>\...            finished videos (see above); never cleaned automatically
 #>
 param(
   [Parameter(Mandatory = $true)][string]$Project,
@@ -37,6 +46,9 @@ param(
   [int]$Inflight = 4,
   [string]$Keep = '',
   [switch]$VerifyMd5,
+  [switch]$KeepFrames,
+  [switch]$NoPublish,
+  [string]$Title = '',
   [switch]$Job,                     # run the module's run(ctx) once (GPU compute etc.); result -> result.json
   [string]$JobParams = '{}'
 )
@@ -52,6 +64,8 @@ $browser = @('C:\Program Files\Google\Chrome\Application\chrome.exe',
 if (-not $browser) { throw 'no browser' }
 if ($Mode -eq 'stream' -and -not $Encode) { throw 'stream mode needs -Encode' }
 if ($Encode -and $Only) { throw '-Encode needs a full run (no -Only)' }
+if ($Title -and $Title -notmatch '^[A-Za-z0-9][A-Za-z0-9_-]{0,40}$') { throw 'bad title (letters, digits, _ and - only)' }
+if ($Encode -and -not $Keep) { $Keep = '0,{0},{1}' -f [int][Math]::Floor($Frames / 2), ($Frames - 1) }   # keyframes kept after encoding
 if (($Encode -or $VerifyMd5) -and -not (Test-Path $Ffmpeg)) { throw 'ffmpeg missing' }
 $toolDir = $PSScriptRoot
 
@@ -214,6 +228,9 @@ try {
 }
 if ($smiProc -and -not $smiProc.HasExited) { try { $smiProc.Kill(); [void]$smiProc.WaitForExit(5000) } catch { } }
 $browserMs = $sw.ElapsedMilliseconds
+for ($try = 0; $try -lt 5 -and (Test-Path "$run\chrome-profile"); $try++) {            # temporary, never needed again
+  try { Remove-Item -Recurse -Force "$run\chrome-profile" -ErrorAction Stop } catch { Start-Sleep -Milliseconds 500 }
+}
 $util = @(Get-Content "$run\logs\gpu-util.csv" -ErrorAction SilentlyContinue | ForEach-Object { ($_ -split ',')[0].Trim() } | Where-Object { $_ -match '^\d+$' } | ForEach-Object { [int]$_ })
 Log "browser phase finished: received=$received failure=$failure"
 
@@ -238,6 +255,40 @@ if ($ff) {
     if ($received -ne $Frames) { $failure = 'missing_frames' }
     elseif ($ff.ExitCode -ne 0) { $failure = 'encode_failed' }
     else { $info.video_bytes = (Get-Item "$run\video.mp4").Length }
+  }
+}
+
+# ---- housekeeping after a successful encode -------------------------------------------
+if (-not $failure -and $Encode) {
+  if ($Mode -eq 'png' -and -not $KeepFrames) {
+    $keepSet = @($Keep -split ',' | ForEach-Object { '{0:D5}.png' -f [int]$_ })
+    Get-ChildItem "$run\frames" -Filter *.png | Where-Object { $keepSet -notcontains $_.Name } | Remove-Item -Force
+  }
+  $info.frames_kept = @(Get-ChildItem "$run\frames" -Filter *.png).Count
+  if (-not $NoPublish) {
+    $outDir = Join-Path $Root "output\$Project"
+    New-Item -ItemType Directory -Force -Path $outDir | Out-Null
+    $dur = [Math]::Round($Frames / $Fps, 2).ToString([Globalization.CultureInfo]::InvariantCulture)
+    $stem = '{0}_{1}{2}_{3}x{4}_{5}fps_{6}s' -f $Project, (Get-Date).ToString('yyyy-MM-dd_HHmm'), $(if ($Title) { "_$Title" } else { '' }), $Width, $Height, $Fps, $dur
+    $base = $stem; $k = 2
+    while (Test-Path (Join-Path $outDir "$base.mp4")) { $base = "${stem}_$k"; $k++ }
+    $dst = Join-Path $outDir "$base.mp4"
+    try { New-Item -ItemType HardLink -Path $dst -Target "$run\video.mp4" -ErrorAction Stop | Out-Null; $info.output_link = 'hardlink' }
+    catch { Copy-Item "$run\video.mp4" $dst; $info.output_link = 'copy' }
+    $sha = (Get-FileHash $dst -Algorithm SHA256).Hash.ToLower()
+    Compress-Archive -Path "$run\scene\*" -DestinationPath (Join-Path $outDir "$base.scene.zip") -Force
+    $info.output_video = $dst; $info.video_sha256 = $sha
+    $side = [ordered]@{ file = "$base.mp4"; run_id = $runId; project = $Project; title = $Title;
+      created_local = (Get-Date).ToString('yyyy-MM-dd HH:mm:ss'); width = $Width; height = $Height; fps = $Fps;
+      frames = $Frames; duration_s = [double]$dur; seed = $Seed; crf = $Crf; encoder = 'libx264 preset slow';
+      renderer = $info.renderer; bytes = $info.video_bytes; sha256 = $sha; scene = "$base.scene.zip";
+      reproduce = "rr push <scene dir from $base.scene.zip> ; rr render $Project -Width $Width -Height $Height -Fps $Fps -Frames $Frames -Seed $Seed -Crf $Crf -Encode" }
+    $side | ConvertTo-Json -Depth 4 | Set-Content -Path (Join-Path $outDir "$base.json") -Encoding UTF8
+    $index = Join-Path $Root 'output\index.csv'
+    if (-not (Test-Path $index)) { Set-Content -Path $index -Encoding UTF8 -Value 'created,file,project,title,run_id,width,height,fps,frames,duration_s,bytes,sha256' }
+    Add-Content -Path $index -Encoding UTF8 -Value ('{0},{1}\{2}.mp4,{1},{3},{4},{5},{6},{7},{8},{9},{10},{11}' -f `
+      $side.created_local, $Project, $base, $Title, $runId, $Width, $Height, $Fps, $Frames, $dur, $info.video_bytes, $sha)
+    Log "published $dst ($($info.output_link))"
   }
 }
 

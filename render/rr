@@ -11,6 +11,9 @@
 #   rr status <run_id>            state (succeeded|failed|running|interrupted|missing) + run.json
 #   rr fetch <run_id> [meta|frames|video|contact]   copy results into runs/<run_id>/ (contact: verify + 4-frame sheet)
 #   rr runs                       list remote runs with status
+#   rr prune [days] [--apply]     delete runs older than <days> (default 14) on the PC and VPS-side logs;
+#                                 dry run unless --apply. Never touches D:\ClaudeRender\output
+#   rr prune --project <p> [--apply]   end of a round: delete ALL runs of project <p> (any age)
 set -euo pipefail
 HERE=$(cd "$(dirname "$0")" && pwd)
 REPO=$(cd "$HERE/.." && pwd)
@@ -72,5 +75,25 @@ fetch)
   echo "$dst";;
 runs)
   ssh "$HOST" "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $RROOT\\tools\\claude\\list-runs.ps1" </dev/null;;
-*) sed -n '2,9p' "$0"; exit 2;;
+prune)
+  days=""; apply=""; proj=""; args=("${@:2}")
+  for ((k=0; k<${#args[@]}; k++)); do
+    case ${args[k]} in
+      --apply) apply="-Apply";;
+      --project) k=$((k+1)); proj=${args[k]:-}; [ -n "$proj" ] || { echo "--project requires a name" >&2; exit 2; };;
+      *[!0-9]*|"") echo "usage: rr prune [days] [--project name] [--apply]" >&2; exit 2;;
+      *) days=${args[k]};;
+    esac
+  done
+  [ -n "$proj" ] && [[ ! "$proj" =~ ^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$ ]] && { echo "bad project name" >&2; exit 2; }
+  days=${days:-$([ -n "$proj" ] && echo 0 || echo 14)}
+  ssh "$HOST" "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $RROOT\\tools\\claude\\prune-runs.ps1 -Days $days ${proj:+-Project $proj} $apply" </dev/null
+  if [ -n "$apply" ] && [ -d "$LOGS" ]; then
+    if [ -n "$proj" ]; then
+      find "$LOGS" -type f -name "$proj-*.log*" -mtime +"$days" -delete
+    else
+      find "$LOGS" -type f -mtime +"$days" -delete
+    fi
+  fi;;
+*) sed -n '2,15p' "$0"; exit 2;;
 esac
