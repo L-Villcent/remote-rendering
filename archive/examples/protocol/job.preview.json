@@ -1,0 +1,50 @@
+{
+  "protocol_version": 1,
+  "kind": "job",
+  "idempotency_key": "shader-demo-preview-r1",
+  "project_id": "shader-demo",
+  "parent_job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B2D",
+  "stage": "preview",
+  "adapter": {
+    "id": "webgl-frames",
+    "version": "0.1.0"
+  },
+  "entrypoint": "scene/index.html",
+  "render": {
+    "width": 640,
+    "height": 360,
+    "fps": 30,
+    "frame_start": 0,
+    "frame_end_exclusive": 150,
+    "seed": 42
+  },
+  "export": {
+    "profiles": [
+      "h264-preview-v1",
+      "png-rgb8-v1"
+    ],
+    "final_delivery": "retained_local"
+  },
+  "artifacts": [
+    "contact",
+    "log",
+    "preview"
+  ],
+  "limits": {
+    "timeout_seconds": 900,
+    "max_attempts": 2,
+    "max_upload_mb": 200
+  },
+  "network_policy": "offline",
+  "params": {},
+  "job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B3E",
+  "created_at": "2026-10-08T09:10:00Z",
+  "bundle": {
+    "format": "tar",
+    "sha256": "44f3278318c1e28d6a664956cd40e9f384bb4625f8a582750a22c9b11d123286",
+    "size_bytes": 20480,
+    "entry_count": 5
+  },
+  "identity_sha256": "f1b2e0887268a13021cf59eb9f6b46db1a7eba741e3315cfc4f2089388ee0748",
+  "publish_rules_version": 1
+}

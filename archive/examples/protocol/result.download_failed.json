@@ -1,0 +1,56 @@
+{
+  "protocol_version": 1,
+  "kind": "result",
+  "job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B2D",
+  "attempt_id": "a_HPXYP29FWZ6XJ7WMK7FG2B11JK",
+  "attempt_no": 1,
+  "worker_epoch": 3,
+  "outcome": "failed",
+  "phase_reached": "validate",
+  "exit": {
+    "kind": "not_started",
+    "code": null,
+    "signal": null
+  },
+  "error_class": "validation_error",
+  "bundle_sha256": "f26d779da80c23289b293d2aed6c8508d9353433aae4db02cffe02afb34d4aa2",
+  "adapter": {
+    "id": "webgl-frames",
+    "version": "0.1.0"
+  },
+  "toolchain": {
+    "worker_version": "0.1.0",
+    "toolchain_id": "tc-2026-10-a",
+    "browser": null,
+    "encoder": null
+  },
+  "device": {
+    "gpu_query": "not_attempted",
+    "gpu_vendor": null,
+    "gpu_model": null,
+    "software_fallback": null,
+    "gpu_busy_observed": null,
+    "vram_peak_mb": null
+  },
+  "frames": {
+    "expected": 3,
+    "rendered": 0
+  },
+  "timings_ms": {
+    "total": 30
+  },
+  "artifacts": [
+    {
+      "artifact_id": "log",
+      "kind": "log",
+      "media_type": "text/plain",
+      "delivery": "uploaded",
+      "size_bytes": 350,
+      "sha256": "d112fc124720c61d54105e6a199e604013b4b32ee40d2942b3a95010bd5b1f6e"
+    }
+  ],
+  "local_text_check": {
+    "rules_version": 1,
+    "passed": true
+  }
+}

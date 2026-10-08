@@ -1,0 +1,482 @@
+[
+  {
+    "entries": [
+      {
+        "path": "scene/index.html",
+        "is_dir": false
+      },
+      {
+        "path": "scene/.gitkeep",
+        "is_dir": false
+      },
+      {
+        "path": "scene",
+        "is_dir": true
+      },
+      {
+        "path": "assets/tex-01_a.png",
+        "is_dir": false
+      }
+    ],
+    "expected": []
+  },
+  {
+    "entries": [
+      {
+        "path": "console/readme.md",
+        "is_dir": false
+      }
+    ],
+    "expected": []
+  },
+  {
+    "entries": [
+      {
+        "path": "comet.js",
+        "is_dir": false
+      }
+    ],
+    "expected": []
+  },
+  {
+    "entries": [
+      {
+        "path": "con1.txt",
+        "is_dir": false
+      }
+    ],
+    "expected": []
+  },
+  {
+    "entries": [
+      {
+        "path": "../a",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B01"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "a/./b",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B01"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "a\\b",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B02"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "a b",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B02"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "é.txt",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B02"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "PROGRA~1",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B02"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "file:stream",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B02"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "a$b",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B02"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "file.",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B03"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "dir./x",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B03"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "CON",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B04"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "con.txt",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B04"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "Aux.tar.gz",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B04"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "nul",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B04"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "COM1",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B04"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "com0.log",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B04"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "LPT9.x",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B04"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "scene/prn",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B04"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "/abs",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B05"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "a//b",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B05"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "dir/",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B05"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B06"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B06"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "Scene/a.js",
+        "is_dir": false
+      },
+      {
+        "path": "scene/a.js",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B07"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "README.md",
+        "is_dir": false
+      },
+      {
+        "path": "readme.md",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B07"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "x",
+        "is_dir": false
+      },
+      {
+        "path": "x/y",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B08"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "X",
+        "is_dir": false
+      },
+      {
+        "path": "x/y",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B07",
+      "XF-B08"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "a/b",
+        "is_dir": false
+      },
+      {
+        "path": "a/c",
+        "is_dir": false
+      },
+      {
+        "path": "a",
+        "is_dir": true
+      }
+    ],
+    "expected": []
+  },
+  {
+    "entries": [
+      {
+        "path": "scene.js",
+        "is_dir": false
+      },
+      {
+        "path": "scene.js",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B13"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "Scene/a.js",
+        "is_dir": false
+      },
+      {
+        "path": "scene/b.js",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B07"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "a/b.js",
+        "is_dir": false
+      },
+      {
+        "path": "a",
+        "is_dir": true
+      }
+    ],
+    "expected": []
+  },
+  {
+    "entries": [
+      {
+        "path": "a",
+        "is_dir": true
+      },
+      {
+        "path": "a/b.js",
+        "is_dir": false
+      }
+    ],
+    "expected": []
+  },
+  {
+    "entries": [
+      {
+        "path": "a/b.js",
+        "is_dir": false
+      },
+      {
+        "path": "A",
+        "is_dir": true
+      }
+    ],
+    "expected": [
+      "XF-B07"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "a",
+        "is_dir": true
+      },
+      {
+        "path": "a",
+        "is_dir": true
+      }
+    ],
+    "expected": [
+      "XF-B13"
+    ]
+  },
+  {
+    "entries": [
+      {
+        "path": "lib/Util/x.js",
+        "is_dir": false
+      },
+      {
+        "path": "lib/util/y.js",
+        "is_dir": false
+      }
+    ],
+    "expected": [
+      "XF-B07"
+    ]
+  }
+]

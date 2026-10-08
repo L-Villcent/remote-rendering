@@ -1,0 +1,70 @@
+#!/bin/bash
+# rr - drive renders on the local Windows machine (Host render-local in ~/.ssh/config).
+#   rr tools                      upload render/local/* to D:\ClaudeRender\tools\claude
+#   rr push <project>             replace D:\ClaudeRender\projects\<project> with projects/<project>
+#   rr render <project> [args]    start render.ps1 under nohup ssh; prints the VPS log path
+#                                 (the run id is chosen here and stored in <log>.runid)
+#   rr wait <log>                 block until that render finishes; prints its JSON summary.
+#                                 If the SSH link dropped, the run keeps going on the local
+#                                 machine; wait then polls its state until it is terminal.
+#   rr status <run_id>            state (succeeded|failed|running|interrupted|missing) + run.json
+#   rr fetch <run_id> [meta|frames|video|contact]   copy results into runs/<run_id>/ (contact: verify + 4-frame sheet)
+#   rr runs                       list remote runs with status
+set -euo pipefail
+HERE=$(cd "$(dirname "$0")" && pwd)
+REPO=$(cd "$HERE/.." && pwd)
+HOST=render-local
+RROOT='D:\ClaudeRender'
+RROOT_FW='D:/ClaudeRender'
+LOGS="$REPO/runs/_vps-logs"
+ps_run() { ssh "$HOST" "powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"$1\"" </dev/null; }
+
+case "${1:-}" in
+tools)
+  ps_run "New-Item -ItemType Directory -Force -Path $RROOT\\tools\\claude | Out-Null"
+  scp -q "$HERE"/local/* "$HOST:$RROOT_FW/tools/claude/"
+  echo "tools uploaded";;
+push)
+  p=${2:?project}; [ -f "$REPO/projects/$p/index.js" ] || { echo "no projects/$p/index.js" >&2; exit 2; }
+  ps_run "if (Test-Path $RROOT\\projects\\$p) { Remove-Item -Recurse -Force $RROOT\\projects\\$p }"
+  scp -q -r "$REPO/projects/$p" "$HOST:$RROOT_FW/projects/"
+  echo "pushed $p";;
+render)
+  p=${2:?project}; shift 2
+  mkdir -p "$LOGS"
+  stamp=$(date -u +%Y%m%dT%H%M%SZ); runid="$p-$stamp-$(head -c2 /dev/urandom | od -An -tx1 | tr -d ' \n')"
+  log="$LOGS/$runid.log"
+  # own connection (no multiplexing): its lifetime belongs to this render only
+  nohup ssh -o ControlMaster=no -o ControlPath=none "$HOST" \
+    "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $RROOT\\tools\\claude\\render.ps1 -Project $p -RunId $runid $*" \
+    </dev/null >"$log" 2>&1 &
+  echo $! >"$log.pid"; echo "$runid" >"$log.runid"
+  echo "$log";;
+status)
+  id=${2:?run_id}
+  ssh "$HOST" "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $RROOT\\tools\\claude\\list-runs.ps1 -RunId $id" </dev/null;;
+wait)
+  log=${2:?log}; pid=$(cat "$log.pid"); id=$(cat "$log.runid")
+  while kill -0 "$pid" 2>/dev/null; do sleep 2; done
+  last=$(tail -n 1 "$log")
+  if [[ "$last" == "{"* ]]; then echo "$last"; exit 0; fi
+  echo "ssh ended without a summary; polling run $id on the local machine" >&2
+  while :; do
+    st=$("$0" status "$id" 2>/dev/null || true)
+    case "$st" in *'"state":"running"'*|"") sleep 10;; *) echo "$st"; break;; esac
+  done;;
+fetch)
+  id=${2:?run_id}; what=${3:-meta}; dst="$REPO/runs/$id"; mkdir -p "$dst"
+  case $what in
+    meta)   scp -q "$HOST:$RROOT_FW/runs/$id/run.json" "$dst/"; scp -q -r "$HOST:$RROOT_FW/runs/$id/logs" "$dst/";;
+    frames) scp -q -r "$HOST:$RROOT_FW/runs/$id/frames" "$dst/";;
+    video)  scp -q "$HOST:$RROOT_FW/runs/$id/video.mp4" "$dst/";;
+    contact) ssh "$HOST" "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $RROOT\\tools\\claude\\inspect-run.ps1 -RunId $id" </dev/null >"$dst/inspect.json"
+            scp -q "$HOST:$RROOT_FW/runs/$id/contact.jpg" "$dst/"; cat "$dst/inspect.json";;
+    *) echo "meta|frames|video|contact" >&2; exit 2;;
+  esac
+  echo "$dst";;
+runs)
+  ssh "$HOST" "powershell.exe -NoProfile -ExecutionPolicy Bypass -File $RROOT\\tools\\claude\\list-runs.ps1" </dev/null;;
+*) sed -n '2,9p' "$0"; exit 2;;
+esac

@@ -1,0 +1,45 @@
+{
+  "protocol_version": 1,
+  "kind": "job",
+  "idempotency_key": "shader-demo-keyframes-r1",
+  "project_id": "shader-demo",
+  "stage": "keyframes",
+  "adapter": {
+    "id": "webgl-frames",
+    "version": "0.1.0"
+  },
+  "entrypoint": "scene/index.html",
+  "render": {
+    "width": 1280,
+    "height": 720,
+    "fps": 30,
+    "frame_start": 0,
+    "frame_end_exclusive": 150,
+    "keyframes": [
+      149,
+      0,
+      75
+    ],
+    "seed": 42
+  },
+  "params": {
+    "palette": "dusk",
+    "speed": "1.25",
+    "layers": 3
+  },
+  "export": {
+    "profiles": [
+      "png-rgb8-v1"
+    ]
+  },
+  "artifacts": [
+    "log",
+    "keyframe",
+    "contact"
+  ],
+  "limits": {
+    "timeout_seconds": 600,
+    "max_attempts": 2
+  },
+  "network_policy": "offline"
+}

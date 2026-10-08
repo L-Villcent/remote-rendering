@@ -1,0 +1,101 @@
+{
+  "protocol_version": 1,
+  "kind": "result",
+  "job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B2D",
+  "attempt_id": "a_8Q3JJQEX7XRY7BG24JHVCHTPD4",
+  "attempt_no": 1,
+  "worker_epoch": 3,
+  "outcome": "succeeded",
+  "phase_reached": "upload",
+  "exit": {
+    "kind": "exited",
+    "code": 0,
+    "signal": null
+  },
+  "error_class": null,
+  "bundle_sha256": "f26d779da80c23289b293d2aed6c8508d9353433aae4db02cffe02afb34d4aa2",
+  "adapter": {
+    "id": "webgl-frames",
+    "version": "0.1.0"
+  },
+  "toolchain": {
+    "worker_version": "0.1.0",
+    "toolchain_id": "tc-2026-10-a",
+    "browser": {
+      "name": "chromium",
+      "major": 140,
+      "exe_sha256": "96f9d04dd643332e6d753edfc26a810210f73630d9f75a741dd3b5e5abfaa891"
+    },
+    "encoder": null
+  },
+  "device": {
+    "gpu_query": "unavailable",
+    "gpu_vendor": "nvidia",
+    "gpu_model": "GeForce RTX 4070",
+    "software_fallback": false,
+    "gpu_busy_observed": null,
+    "vram_peak_mb": null
+  },
+  "frames": {
+    "expected": 3,
+    "rendered": 3
+  },
+  "timings_ms": {
+    "prepare": 900,
+    "render": 2600,
+    "total": 3800
+  },
+  "artifacts": [
+    {
+      "artifact_id": "log",
+      "kind": "log",
+      "media_type": "text/plain",
+      "delivery": "uploaded",
+      "size_bytes": 5120,
+      "sha256": "f52a6f51c87c102b012f16c79227bf53c5d917aef60c96abf1d7f0d6b50d5bcf"
+    },
+    {
+      "artifact_id": "keyframe-0",
+      "kind": "keyframe",
+      "media_type": "image/png",
+      "export_profile": "png-rgb8-v1",
+      "delivery": "uploaded",
+      "size_bytes": 812345,
+      "sha256": "972deda4eab1fac96bb5745ed006c3792ce27ff29c1c1b335505ef664ab4ba1a",
+      "frame_index": 0
+    },
+    {
+      "artifact_id": "keyframe-75",
+      "kind": "keyframe",
+      "media_type": "image/png",
+      "export_profile": "png-rgb8-v1",
+      "delivery": "uploaded",
+      "size_bytes": 812345,
+      "sha256": "b514cfced8a2288a9034c37cbd32f8c9ae0f3c252063fa482fb8b0b4f2fdaab5",
+      "frame_index": 75
+    },
+    {
+      "artifact_id": "keyframe-149",
+      "kind": "keyframe",
+      "media_type": "image/png",
+      "export_profile": "png-rgb8-v1",
+      "delivery": "uploaded",
+      "size_bytes": 812345,
+      "sha256": "64da44b32fc1723e4ccf836bf2733dc23af3121eb1d950865d3c24d80dc2ebd3",
+      "frame_index": 149
+    },
+    {
+      "artifact_id": "contact",
+      "kind": "contact",
+      "media_type": "image/png",
+      "export_profile": "png-rgb8-v1",
+      "delivery": "uploaded",
+      "size_bytes": 402112,
+      "sha256": "d9fc2f62fa3a09b08f35a12e06969ff98fef6d6fb9809745231d4f8cdfe2f7bb"
+    }
+  ],
+  "local_text_check": {
+    "rules_version": 1,
+    "passed": true
+  }
+}

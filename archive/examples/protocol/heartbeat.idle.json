@@ -1,0 +1,24 @@
+{
+  "protocol_version": 1,
+  "kind": "heartbeat",
+  "worker_alias": "worker-local",
+  "worker_epoch": 4,
+  "seq": 1,
+  "state": "idle",
+  "active_job_id": null,
+  "active_attempt_id": null,
+  "worker_version": "0.1.0",
+  "capabilities": {
+    "adapters": [
+      {
+        "id": "webgl-frames",
+        "version": "0.1.0"
+      }
+    ],
+    "export_profiles": [
+      "png-rgb8-v1",
+      "h264-preview-v1"
+    ],
+    "max_concurrent": 1
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "protocol_version": 1,
+  "kind": "ingest_record",
+  "job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B2D",
+  "attempt_id": "a_TB8MS32BFS62Y8AE92CCY53VHT",
+  "attempt_no": 1,
+  "received_at": "2026-10-08T09:02:11Z",
+  "verdict": "quarantined",
+  "retry_allowed": false,
+  "rejected_count": 0,
+  "reasons": [
+    {
+      "rule": "TX-WINPATH",
+      "ref": "log"
+    },
+    {
+      "rule": "TX-IPV4",
+      "ref": "result.json#/device/gpu_model"
+    }
+  ],
+  "rules_version": 1,
+  "profiles_version": 1,
+  "ingest_version": "0.1.0",
+  "cache_hit": false
+}

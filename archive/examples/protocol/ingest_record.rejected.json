@@ -1,0 +1,21 @@
+{
+  "protocol_version": 1,
+  "kind": "ingest_record",
+  "job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B3E",
+  "attempt_id": "a_TX9PNCNJ2ASVEHEKAS0EWVRSAP",
+  "attempt_no": 2,
+  "received_at": "2026-10-08T09:02:11Z",
+  "verdict": "rejected",
+  "retry_allowed": true,
+  "rejected_count": 1,
+  "reasons": [
+    {
+      "rule": "hash_mismatch",
+      "ref": "preview"
+    }
+  ],
+  "rules_version": 1,
+  "profiles_version": 1,
+  "ingest_version": "0.1.0",
+  "cache_hit": false
+}

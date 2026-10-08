@@ -1,0 +1,13 @@
+{
+  "protocol_version": 1,
+  "kind": "handoff_record",
+  "report_id": "local-20261008-02",
+  "verdict": "quarantined",
+  "reasons": [
+    {
+      "rule": "TX-IPV4",
+      "ref": "handoff"
+    }
+  ],
+  "received_at": "2026-10-08T09:31:00Z"
+}

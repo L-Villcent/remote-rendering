@@ -1,0 +1,15 @@
+{
+  "protocol_version": 1,
+  "kind": "submission_receipt",
+  "idempotency_key": "shader-demo-keyframes-r1",
+  "verdict": "conflict",
+  "job_id": null,
+  "identity_sha256": "04237705011e7f1a248ae9c0a88699595d312f6fd90a4d6727d69a4dddf2757b",
+  "reasons": [
+    {
+      "rule": "identity_conflict",
+      "ref": "submission.json"
+    }
+  ],
+  "issued_at": "2026-10-08T09:05:00Z"
+}

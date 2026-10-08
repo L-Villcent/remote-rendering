@@ -1,0 +1,21 @@
+{
+  "protocol_version": 1,
+  "kind": "job_view",
+  "job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B2D",
+  "stage": "keyframes",
+  "display_state": "quarantined",
+  "overlays": [],
+  "cancel": "none",
+  "current_attempt": {
+    "attempt_id": "a_TB8MS32BFS62Y8AE92CCY53VHT",
+    "attempt_no": 1,
+    "exec_state": "succeeded",
+    "last_status_seq": 9,
+    "last_received_at": "2026-10-08T09:02:00Z",
+    "progress": null,
+    "verdict": "quarantined",
+    "rejected_count": 0
+  },
+  "attempts_seen": 1,
+  "updated_at": "2026-10-08T09:02:11Z"
+}

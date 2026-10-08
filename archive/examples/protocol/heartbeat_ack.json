@@ -1,0 +1,8 @@
+{
+  "protocol_version": 1,
+  "kind": "heartbeat_ack",
+  "worker_alias": "worker-local",
+  "accepted_epoch": 3,
+  "accepted_seq": 118,
+  "issued_at": "2026-10-08T09:12:05Z"
+}

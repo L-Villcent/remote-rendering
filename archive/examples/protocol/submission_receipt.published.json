@@ -1,0 +1,10 @@
+{
+  "protocol_version": 1,
+  "kind": "submission_receipt",
+  "idempotency_key": "shader-demo-keyframes-r1",
+  "verdict": "published",
+  "job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B2D",
+  "identity_sha256": "3c25ea9ddd115b11faa8fcaaa5b8842cc71a146af940a880926be6293f00e698",
+  "reasons": [],
+  "issued_at": "2026-10-08T09:00:00Z"
+}

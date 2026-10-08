@@ -1,0 +1,13 @@
+# VPS side: ~/.ssh/config entry used by render/rr (replace the placeholders).
+Host render-local
+    HostName <local-machine>.<tailnet>.ts.net     # Tailscale MagicDNS name of the Windows PC
+    User render
+    Port 22
+    IdentityFile ~/.ssh/id_ed25519_render
+    IdentitiesOnly yes
+    StrictHostKeyChecking yes                      # add the verified host key to ~/.ssh/known_hosts first
+    ServerAliveInterval 30
+    ServerAliveCountMax 4
+    ControlMaster auto                             # reuse one connection for short commands
+    ControlPath ~/.ssh/cm/%r@%h-%p
+    ControlPersist 10m

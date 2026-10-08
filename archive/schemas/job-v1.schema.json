@@ -1,0 +1,218 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:render-protocol:job:v1",
+  "title": "Render job v1 and VPS-to-Worker control messages",
+  "description": "Root = down/jobs/<job_id>/job.json (normalized submission + publish fields). $defs: submission (outbox), cancel_submission (outbox), cancel_request (down/control), submission_receipt and cancel_receipt (inbox). Cross-field rules XF-J*/XF-B* are in protocol-v1 section 10 and refimpl/render_protocol. No floats anywhere: identity uses canonical JSON (protocol-v1 6.2).",
+  "allOf": [
+    { "$ref": "#/$defs/submission_fields" },
+    {
+      "type": "object",
+      "required": ["job_id", "created_at", "bundle", "identity_sha256", "publish_rules_version", "parent_job_id", "params"],
+      "properties": {
+        "job_id": { "$ref": "#/$defs/job_id" },
+        "created_at": { "$ref": "#/$defs/utc_time" },
+        "bundle": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["format", "sha256", "size_bytes", "entry_count"],
+          "properties": {
+            "format": { "const": "tar" },
+            "sha256": { "$ref": "#/$defs/sha256" },
+            "size_bytes": { "type": "integer", "minimum": 1, "maximum": 52428800 },
+            "entry_count": { "type": "integer", "minimum": 1, "maximum": 2000 }
+          }
+        },
+        "identity_sha256": { "$ref": "#/$defs/sha256" },
+        "publish_rules_version": { "type": "integer", "minimum": 1 },
+        "export": { "required": ["final_delivery"] },
+        "limits": { "required": ["max_upload_mb"] }
+      }
+    }
+  ],
+  "unevaluatedProperties": false,
+
+  "$defs": {
+    "job_id": { "type": "string", "pattern": "^j_[0-9A-HJKMNP-TV-Z]{26}$", "$comment": "ULID from VPS clock (UTC)." },
+    "request_id": { "type": "string", "pattern": "^req_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+    "semver": { "type": "string", "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$" },
+    "utc_time": { "type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
+    "safe_text": { "type": "string", "maxLength": 128, "pattern": "^[^\\u0000-\\u001f\\u007f]*$" },
+
+    "submission": {
+      "$comment": "Validate outbox/submissions/<idempotency_key>.json against this.",
+      "$ref": "#/$defs/submission_fields",
+      "unevaluatedProperties": false
+    },
+
+    "submission_fields": {
+      "type": "object",
+      "required": [
+        "protocol_version", "kind", "idempotency_key", "project_id", "stage",
+        "adapter", "entrypoint", "render", "export", "artifacts", "limits", "network_policy"
+      ],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "job" },
+        "idempotency_key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
+        "project_id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,39}$" },
+        "parent_job_id": { "oneOf": [ { "$ref": "#/$defs/job_id" }, { "type": "null" } ] },
+        "stage": { "enum": ["keyframes", "preview", "final"] },
+        "adapter": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["id", "version"],
+          "properties": {
+            "id": { "enum": ["webgl-frames"] },
+            "version": { "$ref": "#/$defs/semver" }
+          }
+        },
+        "entrypoint": {
+          "$comment": "Must also pass bundle path rules XF-B01..B08 and exist in the bundle (XF-J12).",
+          "type": "string",
+          "maxLength": 200,
+          "pattern": "^(?!(?:.*/)?\\.{1,2}(?:/|$))[A-Za-z0-9._-]{1,64}(/[A-Za-z0-9._-]{1,64}){0,15}$"
+        },
+        "render": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["width", "height", "fps", "frame_start", "frame_end_exclusive", "seed"],
+          "properties": {
+            "width": { "type": "integer", "minimum": 16, "maximum": 3840 },
+            "height": { "type": "integer", "minimum": 16, "maximum": 2160 },
+            "fps": { "type": "integer", "minimum": 1, "maximum": 120 },
+            "frame_start": { "type": "integer", "minimum": 0 },
+            "frame_end_exclusive": { "type": "integer", "minimum": 1, "maximum": 1000000 },
+            "keyframes": {
+              "type": "array",
+              "items": { "type": "integer", "minimum": 0 },
+              "minItems": 1,
+              "maxItems": 16,
+              "uniqueItems": true
+            },
+            "seed": { "type": "integer", "minimum": 0, "maximum": 4294967295 }
+          }
+        },
+        "params": {
+          "$comment": "No floats: pass decimals as strings (e.g. \"1.25\") and parse in the scene.",
+          "type": "object",
+          "maxProperties": 64,
+          "propertyNames": { "pattern": "^[a-zA-Z_][a-zA-Z0-9_]{0,39}$" },
+          "additionalProperties": {
+            "oneOf": [
+              { "type": "integer", "minimum": -9007199254740991, "maximum": 9007199254740991 },
+              { "type": "boolean" },
+              { "$ref": "#/$defs/safe_text" }
+            ]
+          }
+        },
+        "export": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["profiles"],
+          "properties": {
+            "profiles": {
+              "type": "array",
+              "minItems": 1,
+              "uniqueItems": true,
+              "items": { "enum": ["png-rgb8-v1", "h264-preview-v1", "h264-final-v1"] }
+            },
+            "final_delivery": { "enum": ["retained_local", "upload"] }
+          }
+        },
+        "artifacts": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "enum": ["log", "keyframe", "contact", "preview", "final"] }
+        },
+        "limits": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["timeout_seconds", "max_attempts"],
+          "properties": {
+            "timeout_seconds": { "type": "integer", "minimum": 10, "maximum": 21600 },
+            "max_attempts": { "type": "integer", "minimum": 1, "maximum": 3 },
+            "max_upload_mb": { "type": "integer", "minimum": 1, "maximum": 200, "$comment": "Uploaded artifacts only; retained_local final video is not counted." }
+          }
+        },
+        "network_policy": { "const": "offline" }
+      }
+    },
+
+    "cancel_submission": {
+      "$comment": "outbox/control/<job_id>.cancel.json written by renderctl.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "kind", "job_id"],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "cancel_submission" },
+        "job_id": { "$ref": "#/$defs/job_id" }
+      }
+    },
+
+    "cancel_request": {
+      "$comment": "down/control/<job_id>/cancel.json written by render-publish; read by Worker.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "kind", "job_id", "request_id", "requested_at"],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "cancel_request" },
+        "job_id": { "$ref": "#/$defs/job_id" },
+        "request_id": { "$ref": "#/$defs/request_id" },
+        "requested_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+
+    "submission_receipt": {
+      "$comment": "inbox/submissions/<idempotency_key>.json written by render-publish.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "kind", "idempotency_key", "verdict", "job_id", "identity_sha256", "reasons", "issued_at"],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "submission_receipt" },
+        "idempotency_key": { "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{2,63}$" },
+        "verdict": { "enum": ["published", "duplicate", "conflict", "rejected"] },
+        "job_id": { "oneOf": [ { "$ref": "#/$defs/job_id" }, { "type": "null" } ] },
+        "identity_sha256": { "oneOf": [ { "$ref": "#/$defs/sha256" }, { "type": "null" } ] },
+        "reasons": { "type": "array", "maxItems": 64, "items": { "$ref": "urn:render-protocol:result:v1#/$defs/reason" } },
+        "issued_at": { "$ref": "#/$defs/utc_time" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "verdict": { "enum": ["published", "duplicate"] } } },
+          "then": { "properties": { "job_id": { "$ref": "#/$defs/job_id" }, "identity_sha256": { "$ref": "#/$defs/sha256" }, "reasons": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "verdict": { "const": "conflict" } } },
+          "then": { "properties": { "job_id": { "type": "null" }, "identity_sha256": { "$ref": "#/$defs/sha256" } } }
+        },
+        {
+          "if": { "properties": { "verdict": { "const": "rejected" } } },
+          "then": { "properties": { "job_id": { "type": "null" }, "reasons": { "minItems": 1 } } }
+        }
+      ]
+    },
+
+    "cancel_receipt": {
+      "$comment": "inbox/submissions/<job_id>.cancel.json written by render-publish.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "kind", "job_id", "verdict", "request_id", "issued_at"],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "cancel_receipt" },
+        "job_id": { "$ref": "#/$defs/job_id" },
+        "verdict": { "enum": ["published", "already_requested", "ignored_terminal", "unknown_job", "rejected"] },
+        "request_id": { "oneOf": [ { "$ref": "#/$defs/request_id" }, { "type": "null" } ] },
+        "issued_at": { "$ref": "#/$defs/utc_time" }
+      },
+      "if": { "properties": { "verdict": { "enum": ["published", "already_requested"] } } },
+      "then": { "properties": { "request_id": { "$ref": "#/$defs/request_id" } } },
+      "else": { "properties": { "request_id": { "type": "null" } } }
+    }
+  }
+}

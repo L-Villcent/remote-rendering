@@ -1,0 +1,14 @@
+{
+  "$comment": "Machine-readable form of security-boundary-v1 section 4.2 (r5.1). Logical paths relative to config.Layout. 'etc' = /etc/render (root 0644; netcheck-map is delivered by LoadCredential, not listed). FS-17 verifies the deployed ACLs against this file.",
+  "render-publish": {
+    "read": ["outbox", "down/jobs", "inbox/jobs", "etc"],
+    "write": ["down/.staging", "down/jobs", "down/control", "down/handoff", "inbox/submissions", "publish_private"]
+  },
+  "render-ingest": {
+    "read": ["up", "down/jobs", "down/control", "etc"],
+    "write": ["down/acks", "inbox/jobs", "inbox/workers", "inbox/handoff", "ingest_private"]
+  },
+  "render-netcheck": {"read": ["etc"], "write": ["inbox/netcheck"]},
+  "claude-agent": {"read": ["inbox"], "write": ["outbox"]},
+  "render-worker": {"read": ["down"], "write": ["up"]}
+}

@@ -1,0 +1,11 @@
+#!/usr/bin/python3 -IB
+"""Installed as /opt/render-gates/<version>/bin/render-gate (root-owned, read-only)."""
+import pathlib
+import sys
+
+BASE = pathlib.Path(__file__).resolve().parent.parent
+sys.path[:0] = [str(BASE / "server"), str(BASE / "refimpl")]
+
+from render_gates.service import main  # noqa: E402
+
+sys.exit(main())

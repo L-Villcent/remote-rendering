@@ -1,0 +1,85 @@
+{
+  "protocol_version": 1,
+  "kind": "result",
+  "job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B3E",
+  "attempt_id": "a_TX9PNCNJ2ASVEHEKAS0EWVRSAP",
+  "attempt_no": 2,
+  "worker_epoch": 3,
+  "outcome": "succeeded",
+  "phase_reached": "upload",
+  "exit": {
+    "kind": "exited",
+    "code": 0,
+    "signal": null
+  },
+  "error_class": null,
+  "bundle_sha256": "44f3278318c1e28d6a664956cd40e9f384bb4625f8a582750a22c9b11d123286",
+  "adapter": {
+    "id": "webgl-frames",
+    "version": "0.1.0"
+  },
+  "toolchain": {
+    "worker_version": "0.1.0",
+    "toolchain_id": "tc-2026-10-a",
+    "browser": {
+      "name": "chromium",
+      "major": 140,
+      "exe_sha256": "96f9d04dd643332e6d753edfc26a810210f73630d9f75a741dd3b5e5abfaa891"
+    },
+    "encoder": {
+      "name": "ffmpeg",
+      "version": "7.1",
+      "exe_sha256": "124928f70e4771899b440e9912e8efabae87c148cbb48502c6421f376e31bd33"
+    }
+  },
+  "device": {
+    "gpu_query": "available",
+    "gpu_vendor": "nvidia",
+    "gpu_model": "GeForce RTX 4070",
+    "software_fallback": false,
+    "gpu_busy_observed": true,
+    "vram_peak_mb": 612
+  },
+  "frames": {
+    "expected": 150,
+    "rendered": 150
+  },
+  "timings_ms": {
+    "prepare": 800,
+    "render": 21000,
+    "encode": 3100,
+    "total": 25400
+  },
+  "artifacts": [
+    {
+      "artifact_id": "log",
+      "kind": "log",
+      "media_type": "text/plain",
+      "delivery": "uploaded",
+      "size_bytes": 5120,
+      "sha256": "f52a6f51c87c102b012f16c79227bf53c5d917aef60c96abf1d7f0d6b50d5bcf"
+    },
+    {
+      "artifact_id": "contact",
+      "kind": "contact",
+      "media_type": "image/png",
+      "export_profile": "png-rgb8-v1",
+      "delivery": "uploaded",
+      "size_bytes": 402112,
+      "sha256": "d9fc2f62fa3a09b08f35a12e06969ff98fef6d6fb9809745231d4f8cdfe2f7bb"
+    },
+    {
+      "artifact_id": "preview",
+      "kind": "preview",
+      "media_type": "video/mp4",
+      "export_profile": "h264-preview-v1",
+      "delivery": "uploaded",
+      "size_bytes": 1843200,
+      "sha256": "5975cf1bba432391c94667f5886225f69377c0aa8b9fa21fddfb21c89bcf9092"
+    }
+  ],
+  "local_text_check": {
+    "rules_version": 1,
+    "passed": true
+  }
+}

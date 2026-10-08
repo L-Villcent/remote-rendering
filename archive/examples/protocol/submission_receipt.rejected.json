@@ -1,0 +1,19 @@
+{
+  "protocol_version": 1,
+  "kind": "submission_receipt",
+  "idempotency_key": "shader-demo-bad-r1",
+  "verdict": "rejected",
+  "job_id": null,
+  "identity_sha256": null,
+  "reasons": [
+    {
+      "rule": "XF-B04",
+      "ref": "bundle"
+    },
+    {
+      "rule": "XF-J08",
+      "ref": "submission.json#/render"
+    }
+  ],
+  "issued_at": "2026-10-08T09:06:00Z"
+}

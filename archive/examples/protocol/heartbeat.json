@@ -1,0 +1,25 @@
+{
+  "protocol_version": 1,
+  "kind": "heartbeat",
+  "worker_alias": "worker-local",
+  "worker_epoch": 3,
+  "seq": 118,
+  "state": "busy",
+  "active_job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B3E",
+  "active_attempt_id": "a_TX9PNCNJ2ASVEHEKAS0EWVRSAP",
+  "worker_version": "0.1.0",
+  "capabilities": {
+    "adapters": [
+      {
+        "id": "webgl-frames",
+        "version": "0.1.0"
+      }
+    ],
+    "export_profiles": [
+      "png-rgb8-v1",
+      "h264-preview-v1"
+    ],
+    "max_concurrent": 1
+  },
+  "disk_free_class": "ok"
+}

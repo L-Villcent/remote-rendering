@@ -1,0 +1,16 @@
+{
+  "protocol_version": 1,
+  "kind": "status",
+  "job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B3E",
+  "attempt_id": "a_TX9PNCNJ2ASVEHEKAS0EWVRSAP",
+  "attempt_no": 2,
+  "worker_epoch": 3,
+  "seq": 7,
+  "state": "running",
+  "progress": {
+    "frames_done": 62,
+    "frames_total": 150
+  },
+  "elapsed_ms": 4120,
+  "error_class": null
+}

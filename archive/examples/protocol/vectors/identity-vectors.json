@@ -1,0 +1,259 @@
+[
+  {
+    "name": "tiny-object",
+    "kind": "canonical",
+    "input": {
+      "b": 1,
+      "a": "x"
+    },
+    "expected_canonical": "{\"a\":\"x\",\"b\":1}",
+    "expected_sha256": "cdab067e9f3beb32d1252cfd63e492592fecbf591b0d08cadb24bb17f3864246"
+  },
+  {
+    "name": "string-escapes",
+    "kind": "canonical",
+    "input": {
+      "s": "quote\" backslash\\ tab\t nl\n unicode é"
+    },
+    "expected_canonical": "{\"s\":\"quote\\\" backslash\\\\ tab\\t nl\\n unicode é\"}",
+    "expected_sha256": "38f048be7bf5f2e7e3a0647fd87bf284c54752d0e0000ba4b1ae0c9c92c40fd6"
+  },
+  {
+    "name": "utf16-key-order",
+    "kind": "canonical",
+    "input": {
+      "ﬁ": 4,
+      "😀": 3,
+      "é": 2,
+      "z": 1
+    },
+    "expected_canonical": "{\"z\":1,\"é\":2,\"😀\":3,\"ﬁ\":4}",
+    "expected_sha256": "8045887cc81fd3f629877af2acc73f89968894c526c39e6686aa1b2b5f869452"
+  },
+  {
+    "name": "nested-and-ints",
+    "kind": "canonical",
+    "input": {
+      "n": [
+        3,
+        -1,
+        0,
+        9007199254740991
+      ],
+      "o": {
+        "y": null,
+        "x": true,
+        "w": false
+      }
+    },
+    "expected_canonical": "{\"n\":[3,-1,0,9007199254740991],\"o\":{\"w\":false,\"x\":true,\"y\":null}}",
+    "expected_sha256": "80382d96d3828ffee795d5bba6cc1b569542c1b856b1abba6cc949604d81063a"
+  },
+  {
+    "name": "submission-example",
+    "kind": "identity",
+    "input": {
+      "protocol_version": 1,
+      "kind": "job",
+      "idempotency_key": "shader-demo-keyframes-r1",
+      "project_id": "shader-demo",
+      "stage": "keyframes",
+      "adapter": {
+        "id": "webgl-frames",
+        "version": "0.1.0"
+      },
+      "entrypoint": "scene/index.html",
+      "render": {
+        "width": 1280,
+        "height": 720,
+        "fps": 30,
+        "frame_start": 0,
+        "frame_end_exclusive": 150,
+        "keyframes": [
+          149,
+          0,
+          75
+        ],
+        "seed": 42
+      },
+      "params": {
+        "palette": "dusk",
+        "speed": "1.25",
+        "layers": 3
+      },
+      "export": {
+        "profiles": [
+          "png-rgb8-v1"
+        ]
+      },
+      "artifacts": [
+        "log",
+        "keyframe",
+        "contact"
+      ],
+      "limits": {
+        "timeout_seconds": 600,
+        "max_attempts": 2
+      },
+      "network_policy": "offline"
+    },
+    "bundle_sha256": "f26d779da80c23289b293d2aed6c8508d9353433aae4db02cffe02afb34d4aa2",
+    "expected_sha256": "3c25ea9ddd115b11faa8fcaaa5b8842cc71a146af940a880926be6293f00e698"
+  },
+  {
+    "name": "same-content-other-key",
+    "kind": "identity",
+    "input": {
+      "protocol_version": 1,
+      "kind": "job",
+      "idempotency_key": "another-key",
+      "project_id": "shader-demo",
+      "stage": "keyframes",
+      "adapter": {
+        "id": "webgl-frames",
+        "version": "0.1.0"
+      },
+      "entrypoint": "scene/index.html",
+      "render": {
+        "width": 1280,
+        "height": 720,
+        "fps": 30,
+        "frame_start": 0,
+        "frame_end_exclusive": 150,
+        "keyframes": [
+          149,
+          0,
+          75
+        ],
+        "seed": 42
+      },
+      "params": {
+        "palette": "dusk",
+        "speed": "1.25",
+        "layers": 3
+      },
+      "export": {
+        "profiles": [
+          "png-rgb8-v1"
+        ]
+      },
+      "artifacts": [
+        "log",
+        "keyframe",
+        "contact"
+      ],
+      "limits": {
+        "timeout_seconds": 600,
+        "max_attempts": 2
+      },
+      "network_policy": "offline"
+    },
+    "bundle_sha256": "f26d779da80c23289b293d2aed6c8508d9353433aae4db02cffe02afb34d4aa2",
+    "expected_sha256": "3c25ea9ddd115b11faa8fcaaa5b8842cc71a146af940a880926be6293f00e698"
+  },
+  {
+    "name": "explicit-defaults-and-order",
+    "kind": "identity",
+    "input": {
+      "protocol_version": 1,
+      "kind": "job",
+      "idempotency_key": "shader-demo-keyframes-r1",
+      "project_id": "shader-demo",
+      "stage": "keyframes",
+      "adapter": {
+        "id": "webgl-frames",
+        "version": "0.1.0"
+      },
+      "entrypoint": "scene/index.html",
+      "render": {
+        "width": 1280,
+        "height": 720,
+        "fps": 30,
+        "frame_start": 0,
+        "frame_end_exclusive": 150,
+        "keyframes": [
+          149,
+          0,
+          75
+        ],
+        "seed": 42
+      },
+      "params": {
+        "palette": "dusk",
+        "speed": "1.25",
+        "layers": 3
+      },
+      "export": {
+        "profiles": [
+          "png-rgb8-v1"
+        ],
+        "final_delivery": "retained_local"
+      },
+      "artifacts": [
+        "contact",
+        "keyframe",
+        "log"
+      ],
+      "limits": {
+        "timeout_seconds": 600,
+        "max_attempts": 2,
+        "max_upload_mb": 200
+      },
+      "network_policy": "offline",
+      "parent_job_id": null
+    },
+    "bundle_sha256": "f26d779da80c23289b293d2aed6c8508d9353433aae4db02cffe02afb34d4aa2",
+    "expected_sha256": "3c25ea9ddd115b11faa8fcaaa5b8842cc71a146af940a880926be6293f00e698"
+  },
+  {
+    "name": "same-submission-other-bundle",
+    "kind": "identity",
+    "input": {
+      "protocol_version": 1,
+      "kind": "job",
+      "idempotency_key": "shader-demo-keyframes-r1",
+      "project_id": "shader-demo",
+      "stage": "keyframes",
+      "adapter": {
+        "id": "webgl-frames",
+        "version": "0.1.0"
+      },
+      "entrypoint": "scene/index.html",
+      "render": {
+        "width": 1280,
+        "height": 720,
+        "fps": 30,
+        "frame_start": 0,
+        "frame_end_exclusive": 150,
+        "keyframes": [
+          149,
+          0,
+          75
+        ],
+        "seed": 42
+      },
+      "params": {
+        "palette": "dusk",
+        "speed": "1.25",
+        "layers": 3
+      },
+      "export": {
+        "profiles": [
+          "png-rgb8-v1"
+        ]
+      },
+      "artifacts": [
+        "log",
+        "keyframe",
+        "contact"
+      ],
+      "limits": {
+        "timeout_seconds": 600,
+        "max_attempts": 2
+      },
+      "network_policy": "offline"
+    },
+    "bundle_sha256": "44f3278318c1e28d6a664956cd40e9f384bb4625f8a582750a22c9b11d123286",
+    "expected_sha256": "04237705011e7f1a248ae9c0a88699595d312f6fd90a4d6727d69a4dddf2757b"
+  }
+]

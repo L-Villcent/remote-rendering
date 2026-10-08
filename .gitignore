@@ -1,0 +1,21 @@
+# render results fetched from the local machine
+runs/
+# handoff bundles and build outputs
+交接包/
+dist/
+*.zip
+# python caches (archive tests)
+__pycache__/
+*.pyc
+
+# local configuration, credentials and editor state
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+id_ed25519*
+!*.pub.example
+.vscode/
+.idea/
+.DS_Store

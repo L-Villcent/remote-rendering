@@ -1,0 +1,8 @@
+{
+  "protocol_version": 1,
+  "kind": "cancel_receipt",
+  "job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B2D",
+  "verdict": "ignored_terminal",
+  "request_id": null,
+  "issued_at": "2026-10-08T09:20:00Z"
+}

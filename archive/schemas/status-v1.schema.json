@@ -1,0 +1,201 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:render-protocol:status:v1",
+  "title": "Worker heartbeat / attempt status v1, their acks and the inbox views",
+  "description": "Root = a document the Worker uploads (heartbeat or status). $defs: heartbeat_ack (down/acks/_worker), worker_view, job_view, netcheck_view (inbox, written by VPS services). The Worker sends no timestamps; attempt_id is random (no time component). Cross-field rules XF-S*/XF-H* in protocol-v1 section 10.",
+  "oneOf": [ { "$ref": "#/$defs/heartbeat" }, { "$ref": "#/$defs/status" } ],
+
+  "$defs": {
+    "job_id": { "type": "string", "pattern": "^j_[0-9A-HJKMNP-TV-Z]{26}$" },
+    "attempt_id": { "type": "string", "pattern": "^a_[0-9A-HJKMNP-TV-Z]{26}$", "$comment": "130 random bits in Crockford Base32; NOT a ULID, carries no time." },
+    "semver": { "type": "string", "pattern": "^[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}$" },
+    "utc_time": { "type": "string", "format": "date-time", "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}Z$" },
+    "exec_state": { "enum": ["leased", "running", "uploading", "succeeded", "failed", "cancelled"] },
+    "error_class": {
+      "enum": ["validation_error", "adapter_error", "timeout", "gpu_oom", "disk_full", "cancelled", "worker_lost", "upload_error", "internal"]
+    },
+    "progress": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["frames_done", "frames_total"],
+      "properties": {
+        "frames_done": { "type": "integer", "minimum": 0 },
+        "frames_total": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "capabilities": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["adapters", "export_profiles", "max_concurrent"],
+      "properties": {
+        "adapters": {
+          "type": "array",
+          "maxItems": 8,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "version"],
+            "properties": {
+              "id": { "enum": ["webgl-frames"] },
+              "version": { "$ref": "#/$defs/semver" }
+            }
+          }
+        },
+        "export_profiles": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["png-rgb8-v1", "h264-preview-v1", "h264-final-v1"] }
+        },
+        "max_concurrent": { "const": 1 }
+      }
+    },
+
+    "heartbeat": {
+      "$comment": "up/_worker/heartbeat.json. Ordered by (worker_epoch, seq); seq restarts at 1 for a new epoch.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "kind", "worker_alias", "worker_epoch", "seq", "state", "active_job_id", "active_attempt_id", "worker_version", "capabilities"],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "heartbeat" },
+        "worker_alias": { "const": "worker-local" },
+        "worker_epoch": { "type": "integer", "minimum": 1 },
+        "seq": { "type": "integer", "minimum": 1 },
+        "state": { "enum": ["idle", "busy", "paused", "draining"] },
+        "active_job_id": { "oneOf": [ { "$ref": "#/$defs/job_id" }, { "type": "null" } ] },
+        "active_attempt_id": { "oneOf": [ { "$ref": "#/$defs/attempt_id" }, { "type": "null" } ] },
+        "worker_version": { "$ref": "#/$defs/semver" },
+        "capabilities": { "$ref": "#/$defs/capabilities" },
+        "disk_free_class": { "enum": ["ok", "low", "critical"] }
+      }
+    },
+
+    "status": {
+      "$comment": "up/jobs/<job_id>/<attempt_id>/status.json. Ordered by seq within attempt_id (independent of worker_epoch).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "kind", "job_id", "attempt_id", "attempt_no", "seq", "state"],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "status" },
+        "job_id": { "$ref": "#/$defs/job_id" },
+        "attempt_id": { "$ref": "#/$defs/attempt_id" },
+        "attempt_no": { "type": "integer", "minimum": 1, "maximum": 3 },
+        "worker_epoch": { "type": "integer", "minimum": 1, "$comment": "Informational only; ordering uses seq." },
+        "seq": { "type": "integer", "minimum": 1 },
+        "state": { "$ref": "#/$defs/exec_state" },
+        "progress": { "$ref": "#/$defs/progress" },
+        "elapsed_ms": { "type": "integer", "minimum": 0 },
+        "error_class": { "oneOf": [ { "$ref": "#/$defs/error_class" }, { "type": "null" } ] }
+      }
+    },
+
+    "heartbeat_ack": {
+      "$comment": "down/acks/_worker/heartbeat.json written by render-ingest after accepting a heartbeat.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "kind", "worker_alias", "accepted_epoch", "accepted_seq", "issued_at"],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "heartbeat_ack" },
+        "worker_alias": { "const": "worker-local" },
+        "accepted_epoch": { "type": "integer", "minimum": 1 },
+        "accepted_seq": { "type": "integer", "minimum": 1 },
+        "issued_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+
+    "worker_view": {
+      "$comment": "inbox/workers/worker-local.json (Claude-readable).",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "kind", "worker_alias", "health", "last_epoch", "last_seq", "last_received_at", "state", "active_job_id", "capabilities", "updated_at"],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "worker_view" },
+        "worker_alias": { "const": "worker-local" },
+        "health": { "enum": ["never_seen", "alive", "lost", "unconfirmed"] },
+        "last_epoch": { "oneOf": [ { "type": "integer", "minimum": 1 }, { "type": "null" } ] },
+        "last_seq": { "oneOf": [ { "type": "integer", "minimum": 1 }, { "type": "null" } ] },
+        "last_received_at": { "oneOf": [ { "$ref": "#/$defs/utc_time" }, { "type": "null" } ] },
+        "state": { "oneOf": [ { "enum": ["idle", "busy", "paused", "draining"] }, { "type": "null" } ] },
+        "active_job_id": { "oneOf": [ { "$ref": "#/$defs/job_id" }, { "type": "null" } ] },
+        "capabilities": { "oneOf": [ { "$ref": "#/$defs/capabilities" }, { "type": "null" } ] },
+        "updated_at": { "$ref": "#/$defs/utc_time" }
+      }
+    },
+
+    "job_view": {
+      "$comment": "inbox/jobs/<job_id>/status.json (Claude-readable). display_state is derived; terminal states are absorbing.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "kind", "job_id", "stage", "display_state", "overlays", "cancel", "current_attempt", "attempts_seen", "updated_at"],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "job_view" },
+        "job_id": { "$ref": "#/$defs/job_id" },
+        "stage": { "enum": ["keyframes", "preview", "final"] },
+        "display_state": {
+          "enum": ["queued", "leased", "running", "uploading", "delivering", "retry_pending",
+                   "succeeded", "failed", "cancelled", "quarantined", "delivery_failed"]
+        },
+        "overlays": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": { "enum": ["cancel_requested", "worker_lost", "unconfirmed"] }
+        },
+        "cancel": { "enum": ["none", "requested", "honored", "too_late", "ignored_terminal"] },
+        "current_attempt": {
+          "oneOf": [
+            { "type": "null" },
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["attempt_id", "attempt_no", "exec_state", "last_status_seq", "last_received_at", "progress", "verdict", "rejected_count"],
+              "properties": {
+                "attempt_id": { "$ref": "#/$defs/attempt_id" },
+                "attempt_no": { "type": "integer", "minimum": 1, "maximum": 3 },
+                "exec_state": { "oneOf": [ { "$ref": "#/$defs/exec_state" }, { "type": "null" } ] },
+                "last_status_seq": { "type": "integer", "minimum": 0 },
+                "last_received_at": { "oneOf": [ { "$ref": "#/$defs/utc_time" }, { "type": "null" } ] },
+                "progress": { "oneOf": [ { "$ref": "#/$defs/progress" }, { "type": "null" } ] },
+                "verdict": { "oneOf": [ { "enum": ["accepted", "quarantined", "rejected", "delivery_failed"] }, { "type": "null" } ] },
+                "rejected_count": { "type": "integer", "minimum": 0 }
+              }
+            }
+          ]
+        },
+        "attempts_seen": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "updated_at": { "$ref": "#/$defs/utc_time" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "display_state": { "enum": ["succeeded", "failed", "cancelled", "quarantined", "delivery_failed"] } } },
+          "then": { "properties": { "overlays": { "maxItems": 0 } } }
+        },
+        {
+          "if": { "properties": { "display_state": { "const": "queued" } } },
+          "then": { "properties": { "current_attempt": { "type": "null" } } }
+        }
+      ]
+    },
+
+    "netcheck_view": {
+      "$comment": "inbox/netcheck/status.json written by render-netcheck. Whitelist only; no endpoints, names or error text.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["protocol_version", "kind", "worker_alias", "online", "known", "reachable", "path", "error_code", "checked_at"],
+      "properties": {
+        "protocol_version": { "const": 1 },
+        "kind": { "const": "netcheck_view" },
+        "worker_alias": { "const": "worker-local" },
+        "online": { "type": ["boolean", "null"] },
+        "known": { "type": "boolean" },
+        "reachable": { "type": ["boolean", "null"] },
+        "path": { "enum": ["direct", "relay", "unknown"] },
+        "error_code": { "oneOf": [ { "enum": ["not_configured", "daemon_unavailable", "peer_unknown", "internal"] }, { "type": "null" } ] },
+        "checked_at": { "$ref": "#/$defs/utc_time" }
+      }
+    }
+  }
+}

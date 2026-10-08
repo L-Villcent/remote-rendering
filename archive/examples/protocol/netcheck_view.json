@@ -1,0 +1,11 @@
+{
+  "protocol_version": 1,
+  "kind": "netcheck_view",
+  "worker_alias": "worker-local",
+  "online": true,
+  "known": true,
+  "reachable": true,
+  "path": "direct",
+  "error_code": null,
+  "checked_at": "2026-10-08T09:12:00Z"
+}

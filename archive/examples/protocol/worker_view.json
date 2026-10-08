@@ -1,0 +1,25 @@
+{
+  "protocol_version": 1,
+  "kind": "worker_view",
+  "worker_alias": "worker-local",
+  "health": "alive",
+  "last_epoch": 3,
+  "last_seq": 118,
+  "last_received_at": "2026-10-08T09:12:05Z",
+  "state": "busy",
+  "active_job_id": "j_01JZ8Y3K5M7Q9R1T3V5X7Z9B3E",
+  "capabilities": {
+    "adapters": [
+      {
+        "id": "webgl-frames",
+        "version": "0.1.0"
+      }
+    ],
+    "export_profiles": [
+      "png-rgb8-v1",
+      "h264-preview-v1"
+    ],
+    "max_concurrent": 1
+  },
+  "updated_at": "2026-10-08T09:12:05Z"
+}
